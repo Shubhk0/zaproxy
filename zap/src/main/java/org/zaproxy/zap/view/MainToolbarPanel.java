@@ -58,6 +58,7 @@ public class MainToolbarPanel extends JPanel {
     private JButton btnSnapshot = null;
     private JButton btnSession = null;
     private JButton btnOptions = null;
+    private JButton btnAI = null;
 
     public MainToolbarPanel() {
         super();
@@ -94,6 +95,7 @@ public class MainToolbarPanel extends JPanel {
         toolbar.add(getBtnSnapshot());
         toolbar.add(getBtnSession());
         toolbar.add(getBtnOptions());
+        toolbar.add(getBtnAI());
 
         toolbar.addSeparator();
     }
@@ -473,6 +475,29 @@ public class MainToolbarPanel extends JPanel {
                     });
         }
         return btnOptions;
+    }
+
+    private JButton getBtnAI() {
+        if (btnAI == null) {
+            btnAI = new JButton();
+            btnAI.setToolTipText("AI Assistant");
+            btnAI.setIcon(DisplayUtils.getScaledIcon(new ImageIcon(MainToolbarPanel.class.getResource("/resource/icon/16/059.png"))));
+            btnAI.addActionListener(new java.awt.event.ActionListener() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    org.parosproxy.paros.extension.Extension ext = Control.getSingleton().getExtensionLoader().getExtension("ExtensionAIAssistant");
+                    if (ext != null) {
+                        // Reflectively call setTabFocus to avoid hard dependency in core view
+                        try {
+                            ext.getClass().getMethod("getAIPanel").invoke(ext).getClass().getMethod("setTabFocus").invoke(ext.getClass().getMethod("getAIPanel").invoke(ext));
+                        } catch (Exception ex) {
+                            LOGGER.error("Failed to focus AI panel", ex);
+                        }
+                    }
+                }
+            });
+        }
+        return btnAI;
     }
 
     public void sessionChanged(Session session) {

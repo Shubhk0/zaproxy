@@ -12,15 +12,19 @@ Connects ZAP to a local LLM (Large Language Model) running via Ollama to assist 
 *   **Web Search (RAG)**: The AI can optionally search the web (DuckDuckGo) for recent CVEs and exploit details to enrich its analysis of alerts.
 *   **Hunting Suggestions**: Right-click on any Site node in the Sites tree and select **"AI Suggest"**. The AI will provide potential attack vectors based on the context.
 
-### 2. LLM Security Testing
+### 2. Smart Fuzzer Payload Generator
+A dedicated tab in the AI Assistant panel to generate context-aware payloads for ZAP's Fuzzer.
+*   **Generate Payloads**: Select an attack type (SQLi, XSS, etc.) and context (e.g. "Login Form"), and the AI will generate a list of tailored payloads.
+
+### 3. LLM Security Testing
 Tools to help you test *other* LLMs and AI applications.
 *   **Generate Payload**: One-click generation of prompt injection and jailbreak payloads (inspired by Promptfoo).
 *   **Resources**: Quick access to a curated list of AI security resources (Awesome AI Cybersecurity).
 
-### 3. Modern Dark Mode (Caido-like)
+### 4. Modern Dark Mode (Caido-like)
 A sleek, dark interface using the `FlatDarculaLaf` theme to reduce eye strain during long sessions.
 
-### 4. Enhanced Toolbar
+### 5. Enhanced Toolbar
 A new **"AI Assistant"** button is added to the main toolbar for quick access to the AI panel.
 
 ## Prerequisites
@@ -41,10 +45,9 @@ A new **"AI Assistant"** button is added to the main toolbar for quick access to
 ## Usage
 
 *   **Chat**: Open the "AI Assistant" tab. Type your query and press Send.
+*   **Smart Fuzzer**: Go to the "Smart Fuzzer" tab in the AI panel. Select an attack type, enter context, and click Generate. Copy the payloads to ZAP's Fuzzer.
 *   **Analyze Alert**: In the Alerts tab, right-click a vulnerability -> **AI Analyze**.
-    *   If Web Search is enabled, it will first fetch relevant info from the web.
-*   **Gen Payload**: Click the "Gen Payload" button in the AI panel to get a list of LLM attack vectors.
-*   **Resources**: Click "Resources" to see a list of helpful links.
+*   **Gen Payload**: Click the "LLM Injections" button in the Chat toolbar to get a list of LLM attack vectors.
 
 ## Troubleshooting
 
@@ -55,8 +58,9 @@ A new **"AI Assistant"** button is added to the main toolbar for quick access to
 
 The core logic resides in `org.zaproxy.zap.extension.ai`.
 *   `AIClient`: Handles HTTP communication with Ollama and Web Search.
+*   `PayloadGenerator`: Generates fuzzing payloads.
 *   `WebSearchEngine`: Scrapes search results using `Jericho HTML Parser`.
 *   `ExtensionAIAssistant`: Manages the extension lifecycle.
-*   `AIPanel`: The Swing UI.
+*   `AIPanel`: The Swing UI (Chat + Smart Fuzzer tabs).
 
 Enjoy your enhanced bug hunting experience!

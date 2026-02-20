@@ -20,64 +20,51 @@
 package org.zaproxy.zap.extension.ai;
 
 import org.parosproxy.paros.extension.AbstractPanel;
+import org.zaproxy.zap.extension.ai.security.LLMAttackLibrary;
 import org.zaproxy.zap.utils.DisplayUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
+import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.function.Consumer;
 
 public class AIPanel extends AbstractPanel {
 
     private static final long serialVersionUID = 1L;
-    private transient ExtensionAIAssistant extension;
-
+    private final transient ExtensionAIAssistant extension;
     private JTextArea chatArea;
     private JTextField inputField;
     private JButton sendButton;
     private JButton clearButton;
-    private JButton quickScanButton;
-    private JButton analyzeButton;
+    private JButton resourcesButton;
+    private JButton generatePayloadButton;
 
     public AIPanel(ExtensionAIAssistant extension) {
         super();
         this.extension = extension;
-        setName("AI Assistant");
-        setIcon(DisplayUtils.getScaledIcon(new ImageIcon(ExtensionAIAssistant.class.getResource("/resource/icon/16/059.png"))));
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
+        this.setName("AI Assistant");
 
-        // Quick Actions Toolbar
-        JToolBar toolbar = new JToolBar();
-        toolbar.setFloatable(false);
-        toolbar.setRollover(true);
-
-        quickScanButton = new JButton("Quick Scan");
-        quickScanButton.setToolTipText("Run a quick active scan on the selected node");
-        quickScanButton.addActionListener(e -> appendSystemMessage("Quick Scan feature coming soon..."));
-
-        analyzeButton = new JButton("Analyze Context");
-        analyzeButton.setToolTipText("Analyze the current context for vulnerabilities");
-        analyzeButton.addActionListener(e -> appendSystemMessage("Analysis feature coming soon..."));
-
-        clearButton = new JButton("Clear Chat");
-        clearButton.addActionListener(e -> chatArea.setText(""));
-
-        toolbar.add(quickScanButton);
-        toolbar.add(analyzeButton);
-        toolbar.addSeparator();
-        toolbar.add(clearButton);
-
-        add(toolbar, BorderLayout.NORTH);
+        // Simplified icon loading
+        ImageIcon icon = null;
+        try {
+             icon = DisplayUtils.getScaledIcon(ExtensionAIAssistant.class.getResource("/resource/icon/16/059.png"));
+        } catch (Exception e) {
+             // Ignore
+        }
+        if (icon != null) {
+            this.setIcon(icon);
+        }
 
         // Chat Area
         chatArea = new JTextArea();
@@ -85,12 +72,31 @@ public class AIPanel extends AbstractPanel {
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(chatArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        add(scrollPane, BorderLayout.CENTER);
+        this.add(scrollPane, BorderLayout.CENTER);
 
         // Input Area
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputField = new JTextField();
+        sendButton = new JButton("Send");
+
+        inputPanel.add(inputField, BorderLayout.CENTER);
+        inputPanel.add(sendButton, BorderLayout.EAST);
+        this.add(inputPanel, BorderLayout.SOUTH);
+
+        // Toolbar
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        clearButton = new JButton("Clear");
+        resourcesButton = new JButton("Resources");
+        generatePayloadButton = new JButton("Gen Payload");
+
+        toolbar.add(clearButton);
+        toolbar.add(resourcesButton);
+        toolbar.add(generatePayloadButton);
+
+        this.add(toolbar, BorderLayout.NORTH);
+
+        // Events
+        sendButton.addActionListener(e -> sendMessage());
         inputField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -100,42 +106,64 @@ public class AIPanel extends AbstractPanel {
             }
         });
 
-        sendButton = new JButton("Send");
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                sendMessage();
-            }
+        clearButton.addActionListener(e -> chatArea.setText(""));
+
+        resourcesButton.addActionListener(e -> {
+            appendSystemMessage(LLMAttackLibrary.getKnowledgeBaseInfo());
         });
 
-        inputPanel.add(inputField, BorderLayout.CENTER);
-        inputPanel.add(sendButton, BorderLayout.EAST);
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        generatePayloadButton.addActionListener(e -> {
+            String prompt = "Generate a list of 5 advanced prompt injection payloads to test an LLM chatbot for security vulnerabilities. Explain how each works.";
+            inputField.setText(prompt);
+            sendMessage();
+        });
 
-        add(inputPanel, BorderLayout.SOUTH);
+        appendSystemMessage("Welcome to ZAP AI Assistant! Ask me anything about web security.\n" +
+                            "Right-click an Alert to analyze it.\n" +
+                            "Use 'Resources' to see useful links like Awesome AI Cybersecurity.");
     }
 
     private void sendMessage() {
-        String message = inputField.getText().trim();
-        if (!message.isEmpty()) {
-            appendUserMessage(message);
-            inputField.setText("");
+        String text = inputField.getText().trim();
+        if (text.isEmpty()) return;
 
-            processAIQuery(message);
-        }
+        appendUserMessage(text);
+        inputField.setText("");
+        inputField.setEnabled(false);
+        sendButton.setEnabled(false);
+
+        // Ask AI
+        extension.getAIClient().askOllama(text,
+            response -> {
+                SwingUtilities.invokeLater(() -> {
+                     chatArea.append(response);
+                     chatArea.setCaretPosition(chatArea.getDocument().getLength());
+                });
+            },
+            completion -> {
+                SwingUtilities.invokeLater(() -> {
+                    chatArea.append("\n\n");
+                    inputField.setEnabled(true);
+                    sendButton.setEnabled(true);
+                    inputField.requestFocusInWindow();
+                });
+            }
+        );
     }
 
     public void appendUserMessage(String message) {
         SwingUtilities.invokeLater(() -> {
-            chatArea.append("\nYou: " + message + "\n");
+            chatArea.append("\n--------------------------------------------------\n");
+            chatArea.append("You: " + message + "\n");
+            chatArea.append("AI: ");
             chatArea.setCaretPosition(chatArea.getDocument().getLength());
         });
     }
 
     public void appendAIMessage(String message) {
         SwingUtilities.invokeLater(() -> {
-            chatArea.append("\nAI: " + message + "\n");
-            chatArea.setCaretPosition(chatArea.getDocument().getLength());
+             chatArea.append(message);
+             chatArea.setCaretPosition(chatArea.getDocument().getLength());
         });
     }
 
@@ -146,30 +174,8 @@ public class AIPanel extends AbstractPanel {
         });
     }
 
-    private void processAIQuery(String query) {
-        SwingUtilities.invokeLater(() -> {
-            chatArea.append("\nAI: Thinking...\n");
-            chatArea.setCaretPosition(chatArea.getDocument().getLength());
-        });
-
-        extension.getAIClient().askOllama(
-            query,
-            response -> {
-                SwingUtilities.invokeLater(() -> {
-                     String currentText = chatArea.getText();
-                     String marker = "AI: Thinking...\n";
-                     int index = currentText.lastIndexOf(marker);
-                     if (index != -1) {
-                         chatArea.replaceRange("AI: " + response + "\n", index, index + marker.length());
-                     } else {
-                         chatArea.append("AI: " + response + "\n");
-                     }
-                     chatArea.setCaretPosition(chatArea.getDocument().getLength());
-                });
-            },
-            complete -> {
-                // Completion logic if needed
-            }
-        );
+        @Override
+    public void setTabFocus() {
+        this.requestFocusInWindow();
     }
 }

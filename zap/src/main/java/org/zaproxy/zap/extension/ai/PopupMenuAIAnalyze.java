@@ -20,19 +20,18 @@
 package org.zaproxy.zap.extension.ai;
 
 import org.parosproxy.paros.core.scanner.Alert;
-import org.zaproxy.zap.view.popup.PopupMenuItemSiteNodeContainer;
+import org.zaproxy.zap.extension.alert.PopupMenuItemAlert;
 
 /**
- * Using PopupMenuItemSiteNodeContainer as a base since alerts are attached to nodes.
- * We will verify the alert presence in isEnableForComponent.
+ * Context menu for Alerts.
  */
-public class PopupMenuAIAnalyze extends PopupMenuItemSiteNodeContainer {
+public class PopupMenuAIAnalyze extends PopupMenuItemAlert {
 
     private static final long serialVersionUID = 1L;
     private final transient ExtensionAIAssistant extension;
 
     public PopupMenuAIAnalyze(ExtensionAIAssistant extension) {
-        super("Analyze with AI", true);
+        super("Analyze with AI");
         this.extension = extension;
     }
 
@@ -42,13 +41,14 @@ public class PopupMenuAIAnalyze extends PopupMenuItemSiteNodeContainer {
     }
 
     @Override
-    public void performAction(org.parosproxy.paros.model.SiteNode node) {
-        if (node != null && !node.getAlerts().isEmpty()) {
-             Alert alert = node.getAlerts().get(0); // Just take the first one for this prototype
+    public void performAction(Alert alert) {
+         if (alert != null) {
              extension.getAIPanel().setTabFocus();
-             extension.getAIPanel().appendSystemMessage("Analyzing alert: " + alert.getName() + "...");
 
-             extension.getAIClient().analyzeAlert(alert,
+             boolean useWeb = extension.getAIOptions().isWebSearchEnabled();
+             extension.getAIPanel().appendSystemMessage("Analyzing alert: " + alert.getName() + (useWeb ? " (with web search)" : "") + "...");
+
+             extension.getAIClient().analyzeAlert(alert, useWeb,
                 response -> {
                     extension.getAIPanel().appendAIMessage(response);
                 },

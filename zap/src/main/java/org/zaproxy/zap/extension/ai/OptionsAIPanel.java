@@ -25,6 +25,7 @@ import org.parosproxy.paros.view.AbstractParamPanel;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.JPanel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -35,11 +36,11 @@ public class OptionsAIPanel extends AbstractParamPanel {
     private JTextField ollamaUrlField;
     private JTextField modelNameField;
     private JCheckBox darkModeCheckbox;
-    private JTextField openAiKeyField;
+    private JCheckBox webSearchCheckbox;
 
     public OptionsAIPanel() {
         super();
-        setName("AI Options");
+        setName("AI Assistant");
         setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -48,8 +49,8 @@ public class OptionsAIPanel extends AbstractParamPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.0;
 
+        // Ollama URL
         add(new JLabel("Ollama URL:"), gbc);
 
         gbc.gridx = 1;
@@ -57,6 +58,7 @@ public class OptionsAIPanel extends AbstractParamPanel {
         ollamaUrlField = new JTextField(30);
         add(ollamaUrlField, gbc);
 
+        // Model Name
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.weightx = 0.0;
@@ -67,23 +69,21 @@ public class OptionsAIPanel extends AbstractParamPanel {
         modelNameField = new JTextField(20);
         add(modelNameField, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.weightx = 0.0;
-        add(new JLabel("OpenAI API Key (Optional):"), gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        openAiKeyField = new JTextField(30);
-        add(openAiKeyField, gbc);
-
+        // Options Checkboxes
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+
+        webSearchCheckbox = new JCheckBox("Enable Web Search (Context Enrichment)");
+        webSearchCheckbox.setToolTipText("If enabled, AI will search the web for recent CVEs and exploits when analyzing alerts.");
+        add(webSearchCheckbox, gbc);
+
+        gbc.gridy++;
         darkModeCheckbox = new JCheckBox("Enable Dark Mode (Requires Restart)");
         add(darkModeCheckbox, gbc);
 
-        // Push everything up
+        // Spacer
         gbc.gridy++;
         gbc.weighty = 1.0;
         add(new JLabel(""), gbc);
@@ -94,10 +94,12 @@ public class OptionsAIPanel extends AbstractParamPanel {
         OptionsParam options = (OptionsParam) obj;
         AIOptions aiOptions = options.getParamSet(AIOptions.class);
 
-        ollamaUrlField.setText(aiOptions.getOllamaUrl());
-        modelNameField.setText(aiOptions.getModelName());
-        darkModeCheckbox.setSelected(aiOptions.isDarkMode());
-        openAiKeyField.setText(aiOptions.getOpenAiKey());
+        if (aiOptions != null) {
+            ollamaUrlField.setText(aiOptions.getOllamaUrl());
+            modelNameField.setText(aiOptions.getModelName());
+            darkModeCheckbox.setSelected(aiOptions.isDarkMode());
+            webSearchCheckbox.setSelected(aiOptions.isWebSearchEnabled());
+        }
     }
 
     @Override
@@ -110,10 +112,12 @@ public class OptionsAIPanel extends AbstractParamPanel {
         OptionsParam options = (OptionsParam) obj;
         AIOptions aiOptions = options.getParamSet(AIOptions.class);
 
-        aiOptions.setOllamaUrl(ollamaUrlField.getText());
-        aiOptions.setModelName(modelNameField.getText());
-        aiOptions.setDarkMode(darkModeCheckbox.isSelected());
-        aiOptions.setOpenAiKey(openAiKeyField.getText());
+        if (aiOptions != null) {
+            aiOptions.setOllamaUrl(ollamaUrlField.getText());
+            aiOptions.setModelName(modelNameField.getText());
+            aiOptions.setDarkMode(darkModeCheckbox.isSelected());
+            aiOptions.setWebSearchEnabled(webSearchCheckbox.isSelected());
+        }
     }
 
     @Override

@@ -28,20 +28,20 @@ public class AIOptions extends AbstractParam {
     private static final String OLLAMA_URL_KEY = AI_BASE_KEY + ".ollama.url";
     private static final String MODEL_NAME_KEY = AI_BASE_KEY + ".model.name";
     private static final String DARK_MODE_KEY = AI_BASE_KEY + ".ui.darkmode";
-    private static final String OPENAI_KEY_KEY = AI_BASE_KEY + ".openai.key";
+    private static final String ENABLE_WEB_SEARCH_KEY = AI_BASE_KEY + ".websearch.enable";
 
     private String ollamaUrl = "http://localhost:11434";
     // Defaulting to deepseek-r1 as requested
     private String modelName = "deepseek-r1";
     private boolean darkMode = true;
-    private String openAiKey = "";
+    private boolean enableWebSearch = false;
 
     @Override
     protected void parse() {
         ollamaUrl = getString(OLLAMA_URL_KEY, "http://localhost:11434");
         modelName = getString(MODEL_NAME_KEY, "deepseek-r1");
         darkMode = getBoolean(DARK_MODE_KEY, true);
-        openAiKey = getString(OPENAI_KEY_KEY, "");
+        enableWebSearch = getBoolean(ENABLE_WEB_SEARCH_KEY, false);
     }
 
     public String getOllamaUrl() {
@@ -71,12 +71,12 @@ public class AIOptions extends AbstractParam {
         getConfig().setProperty(DARK_MODE_KEY, darkMode);
     }
 
-    public String getOpenAiKey() {
-        return openAiKey;
+    public boolean isWebSearchEnabled() {
+        return enableWebSearch;
     }
 
-    public void setOpenAiKey(String openAiKey) {
-        this.openAiKey = openAiKey;
-        getConfig().setProperty(OPENAI_KEY_KEY, openAiKey);
+    public void setWebSearchEnabled(boolean enableWebSearch) {
+        this.enableWebSearch = enableWebSearch;
+        getConfig().setProperty(ENABLE_WEB_SEARCH_KEY, enableWebSearch);
     }
 }

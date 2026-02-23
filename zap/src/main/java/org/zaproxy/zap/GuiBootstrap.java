@@ -362,6 +362,15 @@ public class GuiBootstrap extends ZapBootstrap {
 
         UIManager.addAuxiliaryLookAndFeel(new ZapLookAndFeel());
 
+        try {
+            if (Model.getSingleton().getOptionsParam().getConfig().getBoolean("ai.ui.darkmode", false)) {
+                UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarculaLaf());
+                return;
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+
         if (Constant.isMacOsX()) {
             OsXGui.setup();
         }

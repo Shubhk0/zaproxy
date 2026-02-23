@@ -1,0 +1,68 @@
+# ZAP AI Assistant & UI Improvements
+
+This extension integrates local AI capabilities (via Ollama) into OWASP ZAP and introduces a modern Dark Mode for a better bug hunting experience.
+
+## Features
+
+### 1. AI Assistant Integration
+Connects ZAP to a local LLM (Large Language Model) running via Ollama to assist with vulnerability analysis and bug hunting strategies.
+
+*   **Chat Interface**: A dedicated "AI Assistant" panel allows you to chat with the AI about security topics.
+*   **Vulnerability Analysis**: Right-click on any Alert in the Alerts tab and select **"AI Analyze"**. The AI will explain the risk, impact, and remediation steps.
+*   **Web Search (RAG)**: The AI can optionally search the web (DuckDuckGo) for recent CVEs and exploit details to enrich its analysis of alerts.
+*   **Hunting Suggestions**: Right-click on any Site node in the Sites tree and select **"AI Suggest"**. The AI will provide potential attack vectors based on the context.
+
+### 2. Smart Fuzzer Payload Generator
+A dedicated tab in the AI Assistant panel to generate context-aware payloads for ZAP's Fuzzer.
+*   **Generate Payloads**: Select an attack type (SQLi, XSS, etc.) and context (e.g. "Login Form"), and the AI will generate a list of tailored payloads.
+*   **Model Override**: Override the default AI model for specific fuzzing tasks directly in the panel.
+*   **Export Tools**: Copy generated payloads to clipboard or save to a file for easy use in ZAP's Fuzzer or other tools.
+
+### 3. LLM Security Testing
+Tools to help you test *other* LLMs and AI applications.
+*   **Generate Payload**: One-click generation of prompt injection and jailbreak payloads (inspired by Promptfoo).
+*   **Resources**: Quick access to a curated list of AI security resources (Awesome AI Cybersecurity).
+
+### 4. Modern Dark Mode (Caido-like)
+A sleek, dark interface using the `FlatDarculaLaf` theme to reduce eye strain during long sessions.
+
+### 5. Enhanced Toolbar
+A new **"AI Assistant"** button is added to the main toolbar for quick access to the AI panel.
+
+## Prerequisites
+
+*   **Ollama**: You must have [Ollama](https://ollama.com/) installed and running.
+*   **DeepSeek Model**: By default, the extension uses the `deepseek-r1` model. You can change this in the options.
+    *   Run: `ollama pull deepseek-r1`
+
+## Configuration
+
+1.  Open ZAP.
+2.  Navigate to **Tools -> Options -> AI Assistant**.
+3.  **Ollama URL**: Default is `http://localhost:11434`.
+4.  **Model Name**: Default is `deepseek-r1`.
+5.  **Enable Web Search**: Check to allow the AI to search the internet for context (no API key required).
+6.  **Dark Mode**: Check to enable the dark theme.
+
+## Usage
+
+*   **Chat**: Open the "AI Assistant" tab. Type your query and press Send.
+*   **Smart Fuzzer**: Go to the "Smart Fuzzer" tab in the AI panel. Select an attack type, enter context, and click Generate. Use "Copy to Clipboard" to transfer payloads to ZAP's Fuzzer.
+*   **Analyze Alert**: In the Alerts tab, right-click a vulnerability -> **AI Analyze**.
+*   **Gen Payload**: Click the "LLM Injections" button in the Chat toolbar to get a list of LLM attack vectors.
+
+## Troubleshooting
+
+*   **Connection Error**: Ensure Ollama is running (`ollama serve`). Check if `http://localhost:11434` is accessible.
+*   **Web Search Failed**: Ensure you have internet connectivity. The search scrapes DuckDuckGo HTML, which may be rate-limited if used excessively.
+
+## Development
+
+The core logic resides in `org.zaproxy.zap.extension.ai`.
+*   `AIClient`: Handles HTTP communication with Ollama and Web Search.
+*   `PayloadGenerator`: Generates fuzzing payloads.
+*   `WebSearchEngine`: Scrapes search results using `Jericho HTML Parser`.
+*   `ExtensionAIAssistant`: Manages the extension lifecycle.
+*   `AIPanel`: The Swing UI (Chat + Smart Fuzzer tabs).
+
+Enjoy your enhanced bug hunting experience!

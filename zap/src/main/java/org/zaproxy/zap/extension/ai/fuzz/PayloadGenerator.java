@@ -34,11 +34,16 @@ public class PayloadGenerator {
         this.aiClient = aiClient;
     }
 
-    public void generatePayloads(String attackType, String context, int count, Consumer<String> onResponse, Consumer<String> onComplete) {
+    public void generatePayloads(String attackType, String context, int count, String modelName, Consumer<String> onResponse, Consumer<String> onComplete) {
         String prompt = "You are a specialized fuzzer payload generator. Generate a list of " + count + " unique and effective payloads for a '" + attackType + "' attack.\n" +
             "Context: " + context + "\n\n" +
             "Return ONLY the raw payloads, one per line. Do not include numbering or explanations.";
 
-        aiClient.askOllama(prompt, onResponse, onComplete);
+        // Use AIClient's askOllama, passing modelName as override?
+        // AIClient currently uses the extension's configured model.
+        // We'll need to update AIClient to support overriding model name per request.
+        // Or we can just set it temporarily, but that's messy.
+        // Let's modify AIClient to accept an optional modelName.
+        aiClient.askOllama(prompt, modelName, onResponse, onComplete);
     }
 }

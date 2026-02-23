@@ -62,6 +62,18 @@ public class AIClient {
      * @param onComplete Callback when the request is complete.
      */
     public void askOllama(String prompt, Consumer<String> onResponse, Consumer<String> onComplete) {
+        askOllama(prompt, null, onResponse, onComplete);
+    }
+
+    /**
+     * Sends a prompt to the configured Ollama instance, with an optional model override.
+     *
+     * @param prompt The prompt to send.
+     * @param modelOverride The model to use (or null for default).
+     * @param onResponse Callback for the response text.
+     * @param onComplete Callback when the request is complete.
+     */
+    public void askOllama(String prompt, String modelOverride, Consumer<String> onResponse, Consumer<String> onComplete) {
         // Use a background thread for network IO
         executor.submit(() -> {
             try {
@@ -70,7 +82,10 @@ public class AIClient {
                 if (ollamaUrl.endsWith("/")) {
                     ollamaUrl = ollamaUrl.substring(0, ollamaUrl.length() - 1);
                 }
-                String modelName = extension.getAIOptions().getModelName();
+
+                String modelName = modelOverride != null && !modelOverride.isEmpty()
+                    ? modelOverride
+                    : extension.getAIOptions().getModelName();
 
                 // Using URI to create URL to avoid deprecation warning
                 URL url = new URI(ollamaUrl + "/api/generate").toURL();
@@ -161,65 +176,16 @@ public class AIClient {
                 searchContext + "\n\n" +
                 "Please explain why this is a risk, how an attacker might exploit it, and provide specific code examples (if applicable) on how to fix it. If web search results were provided, use them to enrich your answer.";
 
-            // Call askOllama directly logic here to avoid nested executor issues or just call it directly since we are already in a thread
-             try {
-                String ollamaUrl = extension.getAIOptions().getOllamaUrl();
-                // Ensure no trailing slash
-                if (ollamaUrl.endsWith("/")) {
-                    ollamaUrl = ollamaUrl.substring(0, ollamaUrl.length() - 1);
-                }
-                String modelName = extension.getAIOptions().getModelName();
-
-                // Using URI to create URL to avoid deprecation warning
-                URL url = new URI(ollamaUrl + "/api/generate").toURL();
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-
-                // Use JSONObject for safe JSON construction
-                JSONObject jsonParams = new JSONObject();
-                jsonParams.put("model", modelName);
-                jsonParams.put("prompt", prompt);
-                jsonParams.put("stream", false);
-
-                String jsonInputString = jsonParams.toString();
-
-                try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
-
-                StringBuilder responseBuilder = new StringBuilder();
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        responseBuilder.append(line);
-                    }
-                }
-
-                // Parse response
-                String jsonResponseString = responseBuilder.toString();
-                JSONObject jsonResponse = JSONObject.fromObject(jsonResponseString);
-
-                if (jsonResponse.has("response")) {
-                    onResponse.accept(jsonResponse.getString("response"));
-                } else {
-                    onResponse.accept("[Error: AI response did not contain a 'response' field]");
-                }
-
-                if (onComplete != null) {
-                    onComplete.accept("");
-                }
-
-            } catch (Exception e) {
+            try {
+                // Call askOllama logic directly with the default model
+                askOllama(prompt, null, onResponse, onComplete);
+             } catch (Exception e) {
                 LOGGER.error("Error communicating with Ollama: " + e.getMessage(), e);
                 onResponse.accept("\n[Error: " + e.getMessage() + "]\n");
                 if (onComplete != null) {
                     onComplete.accept("");
                 }
-            }
+             }
         });
     }
 
@@ -255,6 +221,6 @@ public class AIClient {
             "Context: " + context + "\n\n" +
             "Provide a checklist of things to test.";
 
-        askOllama(prompt, onResponse, onComplete);
+        askOllama(prompt, null, onResponse, onComplete);
     }
 }

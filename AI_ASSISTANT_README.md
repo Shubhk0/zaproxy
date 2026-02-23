@@ -15,6 +15,8 @@ Connects ZAP to a local LLM (Large Language Model) running via Ollama to assist 
 ### 2. Smart Fuzzer Payload Generator
 A dedicated tab in the AI Assistant panel to generate context-aware payloads for ZAP's Fuzzer.
 *   **Generate Payloads**: Select an attack type (SQLi, XSS, etc.) and context (e.g. "Login Form"), and the AI will generate a list of tailored payloads.
+*   **Model Override**: Override the default AI model for specific fuzzing tasks directly in the panel.
+*   **Export Tools**: Copy generated payloads to clipboard or save to a file for easy use in ZAP's Fuzzer or other tools.
 
 ### 3. LLM Security Testing
 Tools to help you test *other* LLMs and AI applications.
@@ -45,7 +47,7 @@ A new **"AI Assistant"** button is added to the main toolbar for quick access to
 ## Usage
 
 *   **Chat**: Open the "AI Assistant" tab. Type your query and press Send.
-*   **Smart Fuzzer**: Go to the "Smart Fuzzer" tab in the AI panel. Select an attack type, enter context, and click Generate. Copy the payloads to ZAP's Fuzzer.
+*   **Smart Fuzzer**: Go to the "Smart Fuzzer" tab in the AI panel. Select an attack type, enter context, and click Generate. Use "Copy to Clipboard" to transfer payloads to ZAP's Fuzzer.
 *   **Analyze Alert**: In the Alerts tab, right-click a vulnerability -> **AI Analyze**.
 *   **Gen Payload**: Click the "LLM Injections" button in the Chat toolbar to get a list of LLM attack vectors.
 

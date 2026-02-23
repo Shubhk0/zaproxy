@@ -24,6 +24,8 @@ import org.mockito.ArgumentMatcher;
 import org.zaproxy.zap.extension.ai.AIClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -38,10 +40,10 @@ public class PayloadGeneratorTest {
         AIClient client = mock(AIClient.class);
         PayloadGenerator generator = new PayloadGenerator(client);
 
-        // Use count 5
-        generator.generatePayloads("SQL Injection", "Login Form", 5, null, null);
+        // Use count 5, null model
+        generator.generatePayloads("SQL Injection", "Login Form", 5, null, null, null);
 
-        // Verify askOllama was called with expected prompt parts
+        // Verify askOllama was called with expected prompt and null model
         verify(client).askOllama(argThat(new ArgumentMatcher<String>() {
             @Override
             public boolean matches(String prompt) {
@@ -49,6 +51,6 @@ public class PayloadGeneratorTest {
                        prompt.contains("Login Form") &&
                        prompt.contains("5 unique and effective payloads");
             }
-        }), any(), any());
+        }), isNull(), any(), any());
     }
 }
